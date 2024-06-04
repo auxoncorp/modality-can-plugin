@@ -1,0 +1,27 @@
+[package]
+name = "modality-can"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+auxon-sdk = { git = "https://github.com/auxoncorp/auxon-sdk.git", branch = "plugin-client", features = ["modality"] }
+# TODO
+#auxon-sdk = { version = "1.5", features = ["modality"] }
+toml = "0.5"
+clap = { version = "4.5", features = ["derive", "env", "color"] }
+serde = "1.0.202"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time", "tracing", "net", "signal", "net", "io-util", "fs"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+futures-util = "0.3"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+bitvec = "1.0"
+can-dbc = "6.0"
+# TODO
+socketcan = { git = "https://github.com/jonlamb-gh/socketcan-rs.git", branch = "updates", features = ["tokio"] }
+sha2 = "0.10"
+
+[[bin]]
+name = "modality-socketcan-collector"
+path = "src/bin/collector.rs"

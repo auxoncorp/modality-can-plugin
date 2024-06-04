@@ -1,0 +1,47 @@
+name: CI
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Auth to GHCR
+        env:
+          AUXON_GHCR_TOKEN_RO: ${{ secrets.AUXON_GHCR_TOKEN_RO }}
+        run: |
+          echo $AUXON_GHCR_TOKEN_RO | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Check, lint and test
+        run: |
+          cargo fmt --all --check
+          cargo check --all-targets
+          cargo clippy -- -W clippy::all -D warnings
+          cargo test
+
+      - name: Install rustycan4docker
+        run: |
+          git clone --depth=1 https://github.com/jhaws1982/rustycan4docker.git
+          cd rustycan4docker
+          cargo build --release
+          sudo cp target/release/rustycan4docker /usr/bin/rustycan4docker
+          sudo cp rustyvxcan.service /lib/systemd/system/rustyvxcan.service
+          sudo systemctl daemon-reload
+          sudo systemctl start rustyvxcan.service
+          sudo systemctl status rustyvxcan.service --full --no-pager
+
+      - name: Install modules
+        run: |
+          sudo apt-get install -y linux-modules-extra-$(uname -r) can-utils
+          sudo modprobe vxcan
+          sudo modprobe can-gw
+          sudo lsmod | grep can
+
+      - name: Integration test
+        env:
+          MODALITY_LICENSE_KEY: ${{ secrets.MODALITY_LICENSE_KEY }}
+        run: |
+          cd integration-test
+          ./go.sh
