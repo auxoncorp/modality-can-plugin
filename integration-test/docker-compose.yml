@@ -47,7 +47,7 @@ services:
       MODALITY_CAN_INTERFACE: can_docker0
       MODALITY_CAN_DBC: /test.dbc
       REFLECTOR_OPTS: --collector socketcan
-      RUST_LOG: debug
+      MODALITY_CAN_HW_TIMESTAMPS: false
     networks: [ default, canbus0 ]
     healthcheck:
       test: ["CMD", "bash", "-c", "echo -n > /dev/tcp/127.0.0.1/14188"]

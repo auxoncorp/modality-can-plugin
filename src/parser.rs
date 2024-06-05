@@ -1,11 +1,11 @@
 use crate::{dbc::EmptyStringExt, CommonConfig};
-use auxon_sdk::api::{AttrKey, AttrVal};
+use auxon_sdk::api::{AttrKey, AttrVal, Nanoseconds};
 use bitvec::prelude::*;
 use can_dbc::{
     ByteOrder, Message, MessageId, MultiplexIndicator, Signal, SignalExtendedValueType,
     Transmitter, ValueDescription, ValueType, DBC,
 };
-use socketcan::{CanAnyFrame, EmbeddedFrame, Id};
+use socketcan::{CanAnyFrame, EmbeddedFrame, Id, Timestamp};
 use std::collections::HashMap;
 use tracing::warn;
 
@@ -141,9 +141,18 @@ impl CanParser {
         })
     }
 
-    pub fn parse(&mut self, frame: &CanAnyFrame) -> Result<ParsedCanFrame, anyhow::Error> {
+    pub fn parse(
+        &mut self,
+        frame: &CanAnyFrame,
+        timestamp: Option<Timestamp>,
+    ) -> Result<ParsedCanFrame, anyhow::Error> {
         // Adds the frame-level info
         let mut pcf = ParsedCanFrame::new(frame);
+
+        // Add hw timestamp
+        if let Some(hw_timestamp) = timestamp {
+            pcf.add_hw_timestamp_attrs(&hw_timestamp);
+        }
 
         // Add DBC-related info
         if let Some(msg_info) = self.id_to_msg_info.get_mut(&pcf.id) {
@@ -275,6 +284,30 @@ impl ParsedCanFrame {
         }
 
         pcf
+    }
+
+    fn add_hw_timestamp_attrs(&mut self, timestamp: &Timestamp) {
+        const NANOS_PER_SEC: i64 = 1_000_000_000;
+
+        self.add_internal_attr("timestamp.seconds", timestamp.seconds);
+        self.add_internal_attr("timestamp.nanoseconds", timestamp.nanoseconds);
+
+        let secs = if timestamp.seconds < 0 && timestamp.nanoseconds > 0 {
+            // This is what nix does
+            timestamp.seconds + 1
+        } else {
+            timestamp.seconds
+        };
+
+        let nanos_mod_sec = if timestamp.seconds < 0 && timestamp.nanoseconds > 0 {
+            timestamp.nanoseconds - NANOS_PER_SEC
+        } else {
+            timestamp.nanoseconds
+        };
+
+        let ns = (secs * NANOS_PER_SEC) + nanos_mod_sec;
+
+        self.add_attr("timestamp", Nanoseconds::from(ns as u64));
     }
 
     fn add_dbc_msg_attrs(&mut self, msg: &Message) {

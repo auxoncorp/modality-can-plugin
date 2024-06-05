@@ -46,6 +46,10 @@ List of CAN filters to apply.
 When provided via the environment variable, use the format `<id>:<mask>[:!]` for a single filter.
 Can be comma-separated for multiple filters.
 
+* `hw-timestamps` / `MODALITY_CAN_HW_TIMESTAMPS`
+Enable receive hardware timestamps.
+Defaults to true.
+
 * `bitrate` / `MODALITY_CAN_BITRATE`
 CAN bitrate.
 Defaults to unchanged.

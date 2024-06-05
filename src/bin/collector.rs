@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use auxon_sdk::plugin_utils::serde::from_str;
 use auxon_sdk::{init_tracing, plugin_utils::ingest::Config};
 use futures_util::StreamExt;
-use modality_can::{CanParser, Dbc, HasCommonConfig, Sender};
+use modality_can::{CanParser, Dbc, HasCommonConfig, Sender, PLUGIN_VERSION};
 use serde::{Deserialize, Serialize};
 use socketcan::{
     nl::{CanBitTiming, CanCtrlMode, CanCtrlModes},
@@ -22,6 +22,11 @@ struct CollectorConfig {
 
     /// List of CAN filters to apply.
     filters: Option<Vec<CanFilter>>,
+
+    /// Enable receive hardware timestamps.
+    /// Defaults to true.
+    #[serde(deserialize_with = "from_str", alias = "hw_timestamps")]
+    hw_timestamps: Option<bool>,
 
     /// Brings the interface up by settings its “up” flag enabled via netlink.
     /// Defaults to false.
@@ -191,6 +196,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let mut sock = CanFdSocket::open(iface)
         .map_err(|e| anyhow!("Failed to open CAN interface '{}'. {}", iface, e))?;
 
+    let uses_hw_timestamps = config.plugin.hw_timestamps.unwrap_or(true);
+    if uses_hw_timestamps {
+        sock.set_timestamps(true)
+            .map_err(|e| anyhow!("Failed to enable timestamps. {}", e))?;
+    }
+
     sock.set_filter_accept_all()?;
 
     let can_filters = config.plugin.filters.as_deref().unwrap_or(&[]);
@@ -202,10 +213,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let client = config.connect_and_authenticate().await?;
     info!("Connected to Modality backend");
 
-    let common_timeline_attrs = vec![(
-        "timeline.modality_can.socketcan.interface".into(),
-        iface.into(),
-    )];
+    let common_timeline_attrs = vec![
+        (
+            "timeline.modality_can.plugin.version".into(),
+            PLUGIN_VERSION.into(),
+        ),
+        (
+            "timeline.modality_can.socketcan.interface".into(),
+            iface.into(),
+        ),
+        (
+            "timeline.modality_can.socketcan.hw_timestamp".into(),
+            uses_hw_timestamps.into(),
+        ),
+        (
+            "timeline.clock_style".into(),
+            if uses_hw_timestamps {
+                "relative".into()
+            } else {
+                "absolute".into()
+            },
+        ),
+    ];
     let mut sender = Sender::new(
         client,
         common_timeline_attrs.into_iter().collect(),
@@ -228,8 +257,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                     }
                     maybe_res = sock.next() => {
                         if let Some(res) = maybe_res {
-                            let frame = res?;
-                            let parsed_frame = parser.parse(&frame)?;
+                            let (frame, hw_timestamp) = res?;
+                            let parsed_frame = parser.parse(&frame, hw_timestamp)?;
                             sender.handle_frame(parsed_frame).await?;
                         } else {
                             break;
