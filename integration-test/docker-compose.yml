@@ -35,6 +35,7 @@ services:
         RUN python3 -m pip install cantools
         COPY integration-test/test.dbc /
         COPY --from=0 /plugin-src/target/release/modality-socketcan-collector /modality-reflector-plugins/collectors/
+        COPY --from=0 /plugin-src/target/release/modality-can-importer /modality-reflector-plugins/importers/
     depends_on:
       modality-user-setup: { condition: service_completed_successfully }
       modalityd: { condition: service_healthy }
@@ -78,6 +79,28 @@ services:
       TEST_CAN_INTERFACE: can_docker0
     restart: no
     networks: [ default, canbus0 ]
+
+  test-import:
+    profiles:
+      - test-import
+    build:
+      dockerfile_inline: |
+        FROM modality-can-build:latest
+        FROM ghcr.io/auxoncorp/modality-reflector:latest
+        COPY --from=0 /plugin-src/target/release/modality-can-importer /modality-reflector-plugins/importers/
+        COPY *.log /
+        COPY *.sh /
+        COPY *.speqtr /
+        COPY test.dbc /
+        ENTRYPOINT []
+        CMD /test-importer.sh
+    volumes:
+      - modality_client_config:/root/.config/modality_cli
+    environment:
+      MODALITY_URL: http://modalityd:14181/v1
+      MODALITY_CAN_DBC: /test.dbc
+      INGEST_PROTOCOL_PARENT_URL: modality-ingest://modalityd
+    restart: no
 
 networks:
   default:

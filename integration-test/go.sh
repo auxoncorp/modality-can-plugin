@@ -12,5 +12,7 @@ if [ -f ~/.config/modality/license ]; then
 fi
 
 docker compose --profile test-collector build
+docker compose --profile test-import build
 
 docker compose --profile test-collector up  --abort-on-container-exit test-collector
+docker compose --profile test-import up --abort-on-container-exit test-import

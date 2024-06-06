@@ -36,7 +36,7 @@ The content of the auth token to use when connecting to Modality. If this is not
 The hostname where the modality server is running.
 
 ### SocketCAN Collector
-These options are used by both the SocketCAN collector.
+These options are used by the SocketCAN collector.
 
 * `interface` / `MODALITY_CAN_INTERFACE`
 The SocketCAN interface to use. Defaults to 'can0'.
@@ -81,6 +81,14 @@ Set the CAN FD control mode bit.
 Defaults to false.
 This is a privileged operation that requires the `CAP_NET_ADMIN` capability.
 
+### Importer
+These options are used by the importer.
+
+* `absolute-timestamps` / `MODALITY_CAN_ABSOLUTE_TIMESTAMPS`
+Assume the timestamps in the log are absolute.
+For hardware timestamps, leave false.
+Defaults to false.
+
 ## Adapter Concept Mapping
 The following describes the default mapping between CAN/DBC concepts and Modality's concepts.
 
@@ -96,3 +104,5 @@ The following describes the default mapping between CAN/DBC concepts and Modalit
 * DBC message signals are parsed into attribute key/value pairs.
 
 * CAN frame-level details (e.g. DLC) are logged with the prefix `event.frame.`.
+
+* The importer currently supports candump logs produces by the `candump` utility from the `can-utils` package.

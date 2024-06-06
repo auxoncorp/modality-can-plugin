@@ -1,0 +1,63 @@
+behavior "test_node0"
+  nominal case "multiplexed test_msg0"
+    test_msg0 @ test_node0 as a ->
+    test_msg0 @ test_node0 as b
+    and
+    a.frame.dlc = 8 and
+    a.frame.extended = true and
+    a.frame.id = 1 and
+    a.u4_le = 10 and
+    a.u4_be = 11 and
+    a.i4_le = -2 and
+    a.i4_be = -3 and
+    a.float32_le = -1.234000015258789e2 and
+    a.i8_le_so = -4 and
+    a.muxer0 = 0 and
+    a.muxed_a = -2 and
+    a.flag0 = true and
+    a.enum0 = 'value2' and
+    a.timeline.dbc.file_name = 'test.dbc' and
+    a.timeline.dbc.sha256 = "ad4a13db52b8975bbf7c36d8e8757ab3747182ffdca2450707ce2e40759d44d9" and
+    a.timeline.dbc.version = "0.1" and
+    a.timeline.modality_can.importer.file_name = "candump.log"
+    and
+    b.frame.dlc = 8 and
+    b.frame.extended = true and
+    b.frame.id = 1 and
+    b.u4_le = 11 and
+    b.u4_be = 12 and
+    b.i4_le = -3 and
+    b.i4_be = -4 and
+    b.float32_le = 1.234000015258789e2 and
+    b.i8_le_so = 4 and
+    b.muxer0 = 1 and
+    b.muxed_b = -4 and
+    b.flag0 = false and
+    b.enum0 = 'value0' and
+    b.timeline.dbc.file_name = 'test.dbc' and
+    b.timeline.dbc.sha256 = "ad4a13db52b8975bbf7c36d8e8757ab3747182ffdca2450707ce2e40759d44d9" and
+    b.timeline.dbc.version = "0.1" and
+    b.timeline.modality_can.importer.file_name = "candump.log"
+  end
+end
+
+behavior "test_node1"
+  nominal case "test_msg1"
+    test_msg1 @ test_node1 as a
+    and
+    a.frame.dlc = 8 and
+    a.frame.extended = true and
+    a.frame.id = 2 and
+    a.double_be = 2345.6
+  end
+end
+
+behavior "no dbc"
+  nominal case "CAN ID 0x006"
+    6 @ canbus as a
+    and
+    a.frame.dlc = 0 and
+    a.frame.extended = true and
+    a.frame.id = 6
+  end
+end

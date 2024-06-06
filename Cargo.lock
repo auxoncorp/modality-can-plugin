@@ -695,7 +695,7 @@ dependencies = [
 
 [[package]]
 name = "modality-can"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "auxon-sdk",
@@ -703,6 +703,7 @@ dependencies = [
  "can-dbc",
  "clap",
  "futures-util",
+ "nom",
  "serde",
  "sha2",
  "socketcan",

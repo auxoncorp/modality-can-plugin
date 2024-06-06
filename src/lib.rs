@@ -12,6 +12,8 @@ mod dbc;
 mod parser;
 mod send;
 
+pub mod candump;
+
 pub const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[derive(Debug, Default, Serialize, Deserialize)]

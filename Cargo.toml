@@ -1,7 +1,15 @@
 [package]
 name = "modality-can"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
+
+[[bin]]
+name = "modality-socketcan-collector"
+path = "src/bin/collector.rs"
+
+[[bin]]
+name = "modality-can-importer"
+path = "src/bin/importer.rs"
 
 [dependencies]
 anyhow = "1.0.86"
@@ -20,7 +28,4 @@ bitvec = "1.0"
 can-dbc = "6.0"
 socketcan = { git = "https://github.com/jonlamb-gh/socketcan-rs.git", branch = "updates", features = ["tokio"] }
 sha2 = "0.10"
-
-[[bin]]
-name = "modality-socketcan-collector"
-path = "src/bin/collector.rs"
+nom = "7"
