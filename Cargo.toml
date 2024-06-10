@@ -13,7 +13,7 @@ path = "src/bin/importer.rs"
 
 [dependencies]
 anyhow = "1.0.86"
-auxon-sdk = { git = "https://github.com/auxoncorp/auxon-sdk.git", branch = "plugin-client", features = ["modality"] }
+auxon-sdk = { git = "https://github.com/auxoncorp/auxon-sdk.git", branch = "main", features = ["modality"] }
 # TODO
 #auxon-sdk = { version = "1.5", features = ["modality"] }
 toml = "0.5"
