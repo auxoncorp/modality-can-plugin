@@ -210,7 +210,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             .map_err(|e| anyhow!("Failed to set CAN filters. {}", e))?;
     }
 
-    let client = config.connect_and_authenticate().await?;
+    let client = config.connect_and_authenticate_ingest().await?;
     info!("Connected to Modality backend");
 
     let common_timeline_attrs = vec![

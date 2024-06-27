@@ -98,7 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         ),
     ];
 
-    let client = config.connect_and_authenticate().await?;
+    let client = config.connect_and_authenticate_ingest().await?;
     info!("Connected to Modality backend");
 
     let mut sender = Sender::new(
