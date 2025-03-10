@@ -1,4 +1,7 @@
-use auxon_sdk::plugin_utils::serde::from_str;
+use auxon_sdk::{
+    plugin_utils::serde::from_str,
+    reflector_config::{envsub, EnvSubError},
+};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -41,4 +44,16 @@ pub struct CommonConfig {
 
 pub trait HasCommonConfig {
     fn common_config(&self) -> &CommonConfig;
+}
+
+impl CommonConfig {
+    pub fn envsub_dbc_path(&self) -> Result<Option<PathBuf>, EnvSubError> {
+        let maybe_str = self.dbc.as_ref().and_then(|p| p.as_os_str().to_str());
+
+        if let Some(s) = maybe_str {
+            envsub(s).map(|s| Some(PathBuf::from(s)))
+        } else {
+            Ok(self.dbc.clone())
+        }
+    }
 }

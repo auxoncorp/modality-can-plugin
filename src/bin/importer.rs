@@ -6,7 +6,7 @@ use modality_can::{candump, CanParser, Dbc, HasCommonConfig, Sender, PLUGIN_VERS
 use serde::{Deserialize, Serialize};
 use std::io::BufRead;
 use std::{fs::File, io::BufReader, path::PathBuf};
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 /// Import CAN log files
 #[derive(clap::Parser)]
@@ -46,13 +46,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let config = Config::<ImporterConfig>::load("MODALITY_CAN_")?;
 
-    let dbc = config
-        .plugin
-        .common
-        .dbc
-        .as_ref()
-        .map(Dbc::from_file)
-        .transpose()?;
+    let dbc_path = match config.plugin.common.envsub_dbc_path() {
+        Ok(maybe_cfg) => maybe_cfg,
+        Err(e) => {
+            error!(%e, "Failed to run envsub on DBC  path from reflector configuration file");
+            config.plugin.common.dbc.clone()
+        }
+    };
+
+    let dbc = dbc_path.as_ref().map(Dbc::from_file).transpose()?;
 
     let mut parser = CanParser::new(&config.plugin.common, dbc.as_ref().map(|dbc| &dbc.inner))?;
 
